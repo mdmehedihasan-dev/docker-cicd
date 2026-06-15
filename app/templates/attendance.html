@@ -1,29 +1,44 @@
-<table class="w-full border-collapse border border-white/30 backdrop-blur-md bg-white/20 rounded-lg text-white">
-    <thead>
-        <tr class="bg-white/30">
-            <th class="border p-2">Student Name</th>
-            <th class="border p-2">Date</th>
-            <th class="border p-2">Status</th>
-            <th class="border p-2">Action</th>
+<table class="w-full text-left text-sm text-gray-200 whitespace-nowrap">
+    <thead class="text-xs uppercase bg-black/40 text-gray-400 tracking-wider">
+        <tr>
+            <th scope="col" class="px-6 py-4 font-medium">Student Name</th>
+            <th scope="col" class="px-6 py-4 font-medium">Date</th>
+            <th scope="col" class="px-6 py-4 font-medium">Status</th>
+            <th scope="col" class="px-6 py-4 font-medium text-right">Action</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-white/5">
         {% for record in records %}
-        <tr>
-            <td class="border p-2">{{ record.name }}</td>
-            <td class="border p-2">{{ record.date }}</td>
-            <td class="border p-2 {% if record.status == 'Absent' %} text-red-400 {% else %} text-blue-600 {% endif %}">
-                {{ record.status }}
+        <tr class="hover:bg-white/5 transition-colors duration-200">
+            <td class="px-6 py-4 font-medium text-white">{{ record.name }}</td>
+            <td class="px-6 py-4 text-gray-400">{{ record.date }}</td>
+            <td class="px-6 py-4">
+                {% if record.status == 'Absent' %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 inline-flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Absent
+                    </span>
+                {% else %}
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Present
+                    </span>
+                {% endif %}
             </td>
-            <td class="border p-2">
+            <td class="px-6 py-4 text-right">
                 {% if record.status == "Present" %}
                     <button onclick="markAbsent('{{ record.student_id }}')" 
-                            class="bg-red-500/50 text-white px-4 py-2 rounded-lg hover:bg-red-800/50">
+                            class="text-xs font-medium bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-300 px-4 py-2 rounded-lg border border-white/10 hover:border-red-500/30 transition-all">
                         Mark Absent
                     </button>
+                {% else %}
+                    <span class="text-gray-500/50 text-xs italic px-4 py-2">--</span>
                 {% endif %}
             </td>
         </tr>
         {% endfor %}
+        {% if not records %}
+        <tr>
+            <td colspan="4" class="px-6 py-12 text-center text-gray-400 italic">No records found. Register a student above!</td>
+        </tr>
+        {% endif %}
     </tbody>
 </table>

@@ -5,34 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <title>Attendance Analytics</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .btn-hover { transition: all 0.3s ease; }
+        .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -10px rgba(255, 255, 255, 0.3); }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-black flex items-center justify-center h-screen">
+<body class="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
 
-    <div class="backdrop-blur-md bg-white/30 p-8 rounded-lg shadow-lg max-w-xl w-full text-center">
-        <h2 class="text-3xl font-bold text-white drop-shadow-md">📊 Attendance Analytics</h2>
-
-        <div class="mt-4">
-            <label class="text-white">Start Date:</label>
-            <input type="date" id="startDate" class="bg-white/30 text-white p-2 rounded-lg">
-            <label class="text-white ml-2">End Date:</label>
-            <input type="date" id="endDate" class="bg-white/30 text-white p-2 rounded-lg">
+    <!-- decorative background blobs -->
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-pulse"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-cyan-600 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+    
+    <div class="glass-panel p-10 rounded-3xl max-w-5xl w-full relative z-10">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div>
+                <h2 class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-cyan-300 drop-shadow-sm mb-2">Analytics Dashboard</h2>
+                <p class="text-gray-400 font-light">Visual insights into attendance data</p>
+            </div>
+            <button onclick="location.href='/'" class="btn-hover bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-3 rounded-xl text-sm font-medium transition shadow-inner">
+                ← Back to Portal
+            </button>
         </div>
 
-        <div class="mt-4">
-            <input type="text" id="studentName" placeholder="Enter Student Name (Optional)"
-                class="bg-white/30 text-white p-2 rounded-lg w-full">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 bg-black/20 p-6 rounded-2xl border border-white/5">
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold text-emerald-400/80 uppercase tracking-wider mb-2">Start Date</label>
+                <input type="date" id="startDate" class="bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition [color-scheme:dark] shadow-inner">
+            </div>
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold text-emerald-400/80 uppercase tracking-wider mb-2">End Date</label>
+                <input type="date" id="endDate" class="bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition [color-scheme:dark] shadow-inner">
+            </div>
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold text-emerald-400/80 uppercase tracking-wider mb-2">Student Name (Optional)</label>
+                <input type="text" id="studentName" placeholder="Filter by name..."
+                    class="bg-white/5 text-white px-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition placeholder-gray-500 shadow-inner">
+            </div>
         </div>
 
-        <button onclick="fetchAnalytics()"
-            class="mt-4 bg-white/30 text-white px-6 py-3 rounded-lg shadow-md transition hover:bg-white/50">
-            🔍 Show Analytics
-        </button>
+        <div class="flex justify-center mb-10">
+            <button onclick="fetchAnalytics()"
+                class="btn-hover bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white px-10 py-4 rounded-xl font-semibold shadow-lg shadow-emerald-500/25 text-lg">
+                Generate Report
+            </button>
+        </div>
 
-        <canvas id="attendanceChart" class="mt-6"></canvas>
+        <div class="bg-black/30 border border-white/5 rounded-2xl p-8 flex justify-center items-center shadow-inner">
+            <div class="w-full max-w-md">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
     </div>
 
     <script>
+        let myChart = null;
+
         function fetchAnalytics() {
             let startDate = document.getElementById("startDate").value;
             let endDate = document.getElementById("endDate").value;
@@ -50,19 +88,44 @@
 
         function updateChart(data) {
             let ctx = document.getElementById("attendanceChart").getContext("2d");
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            Chart.defaults.color = 'rgba(255, 255, 255, 0.7)';
+            Chart.defaults.font.family = 'Inter';
+
             let chartData = {
                 labels: ["Present", "Absent"],
                 datasets: [{
                     data: [data.Present, data.Absent],
-                    backgroundColor: ["rgba(0, 255, 0, 0.6)", "rgba(255, 0, 0, 0.6)"],
-                    borderColor: ["green", "red"],
-                    borderWidth: 1
+                    backgroundColor: [
+                        "rgba(16, 185, 129, 0.8)", // Emerald 500
+                        "rgba(239, 68, 68, 0.8)"   // Red 500
+                    ],
+                    borderColor: [
+                        "rgba(16, 185, 129, 1)",
+                        "rgba(239, 68, 68, 1)"
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 10
                 }]
             };
 
-            new Chart(ctx, {
-                type: "pie",
-                data: chartData
+            myChart = new Chart(ctx, {
+                type: "doughnut",
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, font: { size: 14 } }
+                        }
+                    },
+                    cutout: '65%'
+                }
             });
         }
     </script>
